@@ -1,6 +1,7 @@
 import React, { ChangeEvent, useState, ReactNode } from 'react';
-import { Tabs, Tab, makeStyles } from '@material-ui/core';
+import { Tabs, Tab, Card, CardContent, makeStyles } from '@material-ui/core';
 import SwipeableViews from 'react-swipeable-views';
+import { Registration } from './Registration';
 
 const useStyles = makeStyles({
   container: {
@@ -45,20 +46,29 @@ export const Authorization = () => {
 
   return (
     <div className={styles.container}>
-      <div className={styles.authContainer}>
-        <Tabs value={value} onChange={handleTabsChange} variant="fullWidth">
-          <Tab label="Sign In" {...tabProps(0)} />
-          <Tab label="Registration" {...tabProps(1)} />
-        </Tabs>
-        <SwipeableViews index={value} onChangeIndex={setValue}>
-          <TabPanel index={0} value={value}>
-            Sign in
-          </TabPanel>
-          <TabPanel index={1} value={value}>
-            Registration
-          </TabPanel>
-        </SwipeableViews>
-      </div>
+      <Card raised style={{
+        width: '60%'
+      }}>
+        <CardContent style={{padding: 0}}>
+          <Tabs value={value} onChange={handleTabsChange} variant="fullWidth" style={{
+            backgroundColor: '#cf5ce2'
+          }}>
+            <Tab label="Sign In" {...tabProps(0)} />
+            <Tab label="Sign Up" {...tabProps(1)} />
+          </Tabs>
+          <SwipeableViews index={value} onChangeIndex={setValue}>
+            <TabPanel index={0} value={value}>
+              <Registration />
+            </TabPanel>
+            <TabPanel index={1} value={value}>
+              Sign Up
+            </TabPanel>
+          </SwipeableViews>
+        </CardContent>
+      </Card>
+      {/*<div className={styles.authContainer}>*/}
+      {/*  */}
+      {/*</div>*/}
     </div>
   )
 };

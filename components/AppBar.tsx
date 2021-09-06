@@ -6,7 +6,7 @@ import parrot from '../public/parrot.svg';
 
 const useStyles = makeStyles({
   appBar: {
-    backgroundColor: '#9400d3',
+    backgroundColor: '#9c27b0',
     padding: 10
   },
   container: {
