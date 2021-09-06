@@ -1,7 +1,11 @@
 import React, { useState, FormEvent } from 'react';
-import axios from 'axios';
-
+import { useRouter } from 'next/router';
+import axios, {  AxiosError, AxiosResponse } from 'axios';
 import { TextField, Button, makeStyles } from '@material-ui/core';
+
+import { useAppDispatch } from '../../store/hooks/hooks';
+import { setUser, setToken } from '../../store/slices/userSlice';
+import { RegistrationRequest, RegistrationResponse } from '../../dto/registration';
 
 const useStyles = makeStyles({
   container: {
@@ -22,13 +26,19 @@ const useStyles = makeStyles({
     marginTop: 8,
   },
   submitButton: {
-    marginTop: 16,
+    marginTop: 22,
     backgroundColor: '#e1bee7'
   }
-})
+});
 
-export const Registration = () => {
+type Props = {
+  setError: (errorText?: string) => void;
+}
+
+export const Registration = ({ setError }: Props) => {
   const styles = useStyles();
+  const router = useRouter();
+  const dispatch = useAppDispatch();
 
   const [name, setName] = useState<string>();
   const [email, setEmail] = useState<string>();
@@ -42,15 +52,29 @@ export const Registration = () => {
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
 
-    const token = await axios.post(
-      '/api/auth/registration',
-      {
-        name,
-        email,
-        password,
-      },);
-    console.log(token);
-  }
+    try {
+      const { data: { user, token } } = await axios.post<RegistrationRequest, AxiosResponse<RegistrationResponse>>(
+        '/api/auth/registration',
+        {
+          name,
+          email,
+          password,
+        });
+
+      dispatch(setUser(user));
+      dispatch(setToken(token));
+
+      await router.push('/account');
+    } catch (err) {
+      const axiosError = err as AxiosError<string>;
+
+      if (!!axiosError && axiosError.response) {
+        setError(axiosError.response.data)
+      }
+    }
+  };
+
+
 
   return (
     <div className={styles.container}>
@@ -61,14 +85,17 @@ export const Registration = () => {
         onSubmit={handleSubmit}
       >
         <TextField
+          id="registration-email"
           fullWidth
           label="Email"
           value={email}
           onChange={event => setEmail(event.target.value)}
           error={!!emailError}
           helperText={emailError}
+          type="email"
         />
         <TextField
+          id="registration-name"
           fullWidth
           label="Name"
           value={name}
@@ -78,6 +105,7 @@ export const Registration = () => {
           className={styles.field}
         />
         <TextField
+          id="registration-password"
           fullWidth
           label="Password"
           value={password}
@@ -85,8 +113,10 @@ export const Registration = () => {
           error={!!passwordError}
           helperText={passwordError}
           className={styles.field}
+          type="password"
         />
         <TextField
+          id="registration-repeat-password"
           fullWidth
           label="Repeat Password"
           value={repeatPassword}
@@ -94,6 +124,7 @@ export const Registration = () => {
           error={!!repeatPasswordError}
           helperText={repeatPasswordError}
           className={styles.field}
+          type="password"
         />
         <Button
           type="submit"

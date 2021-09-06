@@ -3,32 +3,20 @@ import { genSalt, hash } from 'bcrypt';
 import { sign } from 'jsonwebtoken';
 
 import { PrismaClient } from '../../../helper/PrismaClient';
+import { RegistrationResponse, RegistrationRequest } from '../../../dto/registration';
 
 const ROUNDS = 10;
 
-type RequestBody = {
-  email: string,
-  name: string,
-  password: string,
-};
-
-type ResponseData = {
-  token: string,
-  name: string,
-  email: string,
-  balance: number,
-};
-
 const handler = async (
   req: NextApiRequest,
-  res: NextApiResponse<ResponseData | string>
+  res: NextApiResponse<RegistrationResponse | string>
 ) => {
   if (req.method !== 'POST') {
     res.setHeader('Allow', 'POST');
     return res.status(405).send('Method Not Allowed');
   }
 
-  const { email, name, password } = req.body as RequestBody;
+  const { email, name, password } = req.body as RegistrationRequest;
 
   if (!email || !name || !password) {
     return res.status(400).send('Wrong body!');
@@ -43,6 +31,15 @@ const handler = async (
 
   const client = PrismaClient.getPrismaClient();
 
+  const existingUser = await client.user.findUnique({
+    where: { email }
+  });
+
+  if (!!existingUser) {
+    console.log('error')
+    return res.status(400).send('User with this credentials already exist');
+  }
+
   const newUser = await client.user.create({
     data: {
       name,
@@ -52,20 +49,18 @@ const handler = async (
   });
 
   const token = sign(
-    {
-      email: newUser.email,
-    },
+    { email: newUser.email },
     process.env.JWT_SECRET,
-    {
-      expiresIn: '8h'
-    }
+    { expiresIn: '8h' },
   );
 
   return res.send({
     token,
-    email: newUser.email,
-    name: newUser.name,
-    balance: newUser.balance
+    user: {
+      email: newUser.email,
+      name: newUser.name,
+      balance: newUser.balance
+    },
   });
 }
 
