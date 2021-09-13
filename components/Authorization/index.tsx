@@ -2,6 +2,7 @@ import React, { ChangeEvent, useState, ReactNode } from 'react';
 import { Tabs, Tab, Card, CardContent, makeStyles } from '@material-ui/core';
 import SwipeableViews from 'react-swipeable-views';
 import { Registration } from './Registration';
+import { Login } from "./Login";
 
 const useStyles = makeStyles({
   container: {
@@ -38,7 +39,11 @@ const TabPanel = ({ children, index, value }: TabPanelProps) => (
   </div>
 );
 
-export const Authorization = () => {
+type Props = {
+  setError: (errorText?: string) => void
+}
+
+export const Authorization = ({ setError }: Props) => {
   const styles = useStyles();
   const [value, setValue] = useState(0);
 
@@ -47,9 +52,10 @@ export const Authorization = () => {
   return (
     <div className={styles.container}>
       <Card raised style={{
-        width: '60%'
+        width: '60%',
+        minHeight: '65%'
       }}>
-        <CardContent style={{padding: 0}}>
+        <CardContent style={{padding: 0, minHeight: '100%'}}>
           <Tabs value={value} onChange={handleTabsChange} variant="fullWidth" style={{
             backgroundColor: '#cf5ce2'
           }}>
@@ -58,17 +64,14 @@ export const Authorization = () => {
           </Tabs>
           <SwipeableViews index={value} onChangeIndex={setValue}>
             <TabPanel index={0} value={value}>
-              <Registration />
+              <Login setError={setError} />
             </TabPanel>
             <TabPanel index={1} value={value}>
-              Sign Up
+              <Registration setError={setError} />
             </TabPanel>
           </SwipeableViews>
         </CardContent>
       </Card>
-      {/*<div className={styles.authContainer}>*/}
-      {/*  */}
-      {/*</div>*/}
     </div>
   )
 };

@@ -1,7 +1,18 @@
-import '../styles/globals.css'
 import type { AppProps } from 'next/app'
+import { Provider as ReduxProvider } from 'react-redux';
+import { Provider as AuthProvider } from 'next-auth/client';
+import store from '../store';
 
-function MyApp({ Component, pageProps }: AppProps) {
-  return <Component {...pageProps} />
+import '../styles/globals.css'
+
+const MyApp = ({ Component, pageProps }: AppProps) => {
+  console.log(pageProps)
+  return (
+    <AuthProvider options={{ clientMaxAge: 0 }} session={pageProps.session}>
+      <ReduxProvider store={store}>
+        <Component {...pageProps} />
+      </ReduxProvider>
+    </AuthProvider>
+  );
 }
 export default MyApp

@@ -1,11 +1,10 @@
-import React, { useState, FormEvent, useEffect } from 'react';
+import React, { useState, useEffect, FormEvent } from 'react';
 import { useRouter } from 'next/router';
-import axios, { AxiosError } from 'axios';
-import { signIn, useSession } from 'next-auth/client';
-import { TextField, Button, makeStyles } from '@material-ui/core';
+import { signIn, signOut, useSession } from 'next-auth/client';
+import { TextField, makeStyles, Button } from '@material-ui/core';
 
 import { setUser } from '../../store/slices/userSlice';
-import { useAppDispatch } from '../../store/hooks/hooks';
+import { useAppDispatch, useAppSelector } from '../../store/hooks/hooks';
 
 const useStyles = makeStyles({
   container: {
@@ -21,6 +20,7 @@ const useStyles = makeStyles({
     paddingRight: 12,
     paddingTop: 18,
     paddingBottom: 18,
+    width: '100%',
   },
   field: {
     marginTop: 8,
@@ -35,21 +35,17 @@ type Props = {
   setError: (errorText?: string) => void;
 }
 
-export const Registration = ({ setError }: Props) => {
+export const Login = ({ setError }: Props) => {
   const styles = useStyles();
-  const router = useRouter();
   const [session] = useSession();
+  const router = useRouter();
 
   const dispatch = useAppDispatch();
 
-  const [name, setName] = useState<string>();
   const [email, setEmail] = useState<string>();
   const [password, setPassword] = useState<string>();
-  const [repeatPassword, setRepeatPassword] = useState<string>();
-  const [nameError, setNameError] = useState<string>();
   const [emailError, setEmailError] = useState<string>();
   const [passwordError, setPasswordError] = useState<string>();
-  const [repeatPasswordError, setRepeatPasswordError] = useState<string>();
 
   useEffect(() => {
     if (!!session && !!session.user) {
@@ -63,32 +59,18 @@ export const Registration = ({ setError }: Props) => {
     event.preventDefault();
 
     try {
-      const response = await axios.post(
-        '/api/auth/registration',
-        {
-          name,
-          email,
-          password,
-        });
+      await signIn(
+        'credentials',
+        { email, password, callbackUrl: '/account', redirect: false }
+      );
 
-      if (response.status === 201) {
-        await signIn(
-          'credentials',
-          { email, password, callbackUrl: '/account', redirect: false }
-        );
+      if (!!session) {
+        dispatch(setUser(session.user));
 
-        if (!!session) {
-          dispatch(setUser(session.user));
-
-          await router.push('/account');
-        }
+        await router.push('/account');
       }
-    } catch (err) {
-      const axiosError = err as AxiosError<string>;
-
-      if (!!axiosError && axiosError.response) {
-        setError(axiosError.response.data)
-      }
+    } catch (e) {
+      console.log(e);
     }
   };
 
@@ -101,7 +83,7 @@ export const Registration = ({ setError }: Props) => {
         onSubmit={handleSubmit}
       >
         <TextField
-          id="registration-email"
+          id="login-email"
           fullWidth
           label="Email"
           value={email}
@@ -111,17 +93,7 @@ export const Registration = ({ setError }: Props) => {
           type="email"
         />
         <TextField
-          id="registration-name"
-          fullWidth
-          label="Name"
-          value={name}
-          onChange={event => setName(event.target.value)}
-          error={!!nameError}
-          helperText={nameError}
-          className={styles.field}
-        />
-        <TextField
-          id="registration-password"
+          id="login-password"
           fullWidth
           label="Password"
           value={password}
@@ -131,26 +103,15 @@ export const Registration = ({ setError }: Props) => {
           className={styles.field}
           type="password"
         />
-        <TextField
-          id="registration-repeat-password"
-          fullWidth
-          label="Repeat Password"
-          value={repeatPassword}
-          onChange={event => setRepeatPassword(event.target.value)}
-          error={!!repeatPasswordError}
-          helperText={repeatPasswordError}
-          className={styles.field}
-          type="password"
-        />
         <Button
           type="submit"
           fullWidth
-          disabled={!email || !name || !password}
+          disabled={!email || !password}
           className={styles.submitButton}
         >
-          Sign Up
+          Sign In
         </Button>
       </form>
     </div>
-  );
+  )
 };
