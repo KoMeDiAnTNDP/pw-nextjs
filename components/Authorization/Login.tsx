@@ -1,6 +1,10 @@
-import React, { useState, FormEvent } from 'react';
-import { signIn, useSession } from 'next-auth/client';
+import React, { useState, useEffect, FormEvent } from 'react';
+import { useRouter } from 'next/router';
+import { signIn, signOut, useSession } from 'next-auth/client';
 import { TextField, makeStyles, Button } from '@material-ui/core';
+
+import { setUser } from '../../store/slices/userSlice';
+import { useAppDispatch, useAppSelector } from '../../store/hooks/hooks';
 
 const useStyles = makeStyles({
   container: {
@@ -33,20 +37,41 @@ type Props = {
 
 export const Login = ({ setError }: Props) => {
   const styles = useStyles();
-  const [session, loading] = useSession();
-  console.log(session, loading);
+  const [session] = useSession();
+  const router = useRouter();
+
+  const dispatch = useAppDispatch();
 
   const [email, setEmail] = useState<string>();
   const [password, setPassword] = useState<string>();
   const [emailError, setEmailError] = useState<string>();
   const [passwordError, setPasswordError] = useState<string>();
 
+  useEffect(() => {
+    if (!!session && !!session.user) {
+      dispatch(setUser(session.user));
+
+      router.push('/account');
+    }
+  }, [session]);
+
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
-    const test = await signIn(
-      'credentials',
-      { email, password, callbackUrl: '/account', redirect: false });
-    console.log('test',test?.url);
+
+    try {
+      await signIn(
+        'credentials',
+        { email, password, callbackUrl: '/account', redirect: false }
+      );
+
+      if (!!session) {
+        dispatch(setUser(session.user));
+
+        await router.push('/account');
+      }
+    } catch (e) {
+      console.log(e);
+    }
   };
 
   return (

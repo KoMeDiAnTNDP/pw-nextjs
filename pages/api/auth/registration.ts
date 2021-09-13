@@ -1,6 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { genSalt, hash } from 'bcrypt';
-import { sign } from 'jsonwebtoken';
 
 import { PrismaClient } from '../../../helper/PrismaClient';
 import { RegistrationResponse, RegistrationRequest } from '../../../dto/registration';
@@ -9,7 +8,7 @@ const ROUNDS = 10;
 
 const handler = async (
   req: NextApiRequest,
-  res: NextApiResponse<RegistrationResponse | string>
+  res: NextApiResponse<string | undefined>
 ) => {
   if (req.method !== 'POST') {
     res.setHeader('Allow', 'POST');
@@ -48,20 +47,7 @@ const handler = async (
     }
   });
 
-  const token = sign(
-    { email: newUser.email },
-    process.env.JWT_SECRET,
-    { expiresIn: '8h' },
-  );
-
-  return res.send({
-    token,
-    user: {
-      email: newUser.email,
-      name: newUser.name,
-      balance: newUser.balance
-    },
-  });
+  return res.status(201).send(undefined);
 }
 
 export default handler;

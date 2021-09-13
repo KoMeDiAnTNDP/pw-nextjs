@@ -1,11 +1,11 @@
-import React, { useState, FormEvent } from 'react';
+import React, { useState, FormEvent, useEffect } from 'react';
 import { useRouter } from 'next/router';
-import axios, {  AxiosError, AxiosResponse } from 'axios';
+import axios, { AxiosError } from 'axios';
+import { signIn, useSession } from 'next-auth/client';
 import { TextField, Button, makeStyles } from '@material-ui/core';
 
+import { setUser } from '../../store/slices/userSlice';
 import { useAppDispatch } from '../../store/hooks/hooks';
-import { setUser, setToken } from '../../store/slices/userSlice';
-import { RegistrationRequest, RegistrationResponse } from '../../dto/registration';
 
 const useStyles = makeStyles({
   container: {
@@ -38,6 +38,8 @@ type Props = {
 export const Registration = ({ setError }: Props) => {
   const styles = useStyles();
   const router = useRouter();
+  const [session] = useSession();
+
   const dispatch = useAppDispatch();
 
   const [name, setName] = useState<string>();
@@ -49,11 +51,19 @@ export const Registration = ({ setError }: Props) => {
   const [passwordError, setPasswordError] = useState<string>();
   const [repeatPasswordError, setRepeatPasswordError] = useState<string>();
 
+  useEffect(() => {
+    if (!!session && !!session.user) {
+      dispatch(setUser(session.user));
+
+      router.push('/account');
+    }
+  }, [session]);
+
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
 
     try {
-      const { data: { user, token } } = await axios.post<RegistrationRequest, AxiosResponse<RegistrationResponse>>(
+      const response = await axios.post(
         '/api/auth/registration',
         {
           name,
@@ -61,10 +71,18 @@ export const Registration = ({ setError }: Props) => {
           password,
         });
 
-      dispatch(setUser(user));
-      dispatch(setToken(token));
+      if (response.status === 201) {
+        await signIn(
+          'credentials',
+          { email, password, callbackUrl: '/account', redirect: false }
+        );
 
-      await router.push('/account');
+        if (!!session) {
+          dispatch(setUser(session.user));
+
+          await router.push('/account');
+        }
+      }
     } catch (err) {
       const axiosError = err as AxiosError<string>;
 
@@ -73,8 +91,6 @@ export const Registration = ({ setError }: Props) => {
       }
     }
   };
-
-
 
   return (
     <div className={styles.container}>
