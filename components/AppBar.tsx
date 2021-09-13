@@ -5,6 +5,7 @@ import { AppBar as MaterialAppBar, IconButton, Typography, makeStyles } from '@m
 import ExitToAppIcon from '@material-ui/icons/ExitToApp';
 
 import parrot from '../public/parrot.svg';
+import { signOut } from "next-auth/client";
 
 const useStyles = makeStyles({
   appBar: {
@@ -48,7 +49,7 @@ export const AppBar = ({ isAuthorized }: Props) => {
           <Typography variant="h4" className={styles.title} >Parrot Wings</Typography>
         </div>
         {isAuthorized && (<div>
-          <IconButton>
+          <IconButton onClick={() => signOut({ callbackUrl: process.env.NEXTAUTH_URL, redirect: true })}>
             <ExitToAppIcon className={styles.exitIcon}/>
           </IconButton>
         </div>)}

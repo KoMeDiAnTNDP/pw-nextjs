@@ -17,6 +17,7 @@ export const getAccount = async (req: any): Promise<AccountResponse | null> => {
 
   return {
     user: {
+      id: currentUser.id,
       email: currentUser.email,
       name: currentUser.name,
       balance: currentUser.balance,

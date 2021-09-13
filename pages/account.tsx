@@ -7,6 +7,7 @@ import { getAccount } from '../utils/getAccount';
 import { Layout } from "../components/Layout";
 import { AppBar } from "../components/AppBar";
 import { User } from "../components/User";
+import { Transactions } from "../components/Transactions";
 
 type Props = {
   account: {
@@ -24,7 +25,12 @@ const Account = ({ account }: Props) => {
   return (
     <Layout setError={setError} errorText={errorText}>
       <AppBar isAuthorized={!!account} />
-      <User user={account} />
+      <div style={{ width: '100%', height: '100%', display: 'flex', justifyContent: 'space-around', alignItems: 'center' }}>
+        <User user={account} />
+        <div>
+          <Transactions />
+        </div>
+      </div>
     </Layout>
   )
 };

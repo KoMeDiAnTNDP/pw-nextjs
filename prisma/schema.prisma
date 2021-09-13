@@ -8,13 +8,35 @@ datasource db {
 }
 
 model User {
-  id            Int      @id @default(autoincrement())
+  id            Int                 @id @default(autoincrement())
   name          String
-  email         String   @unique
+  email         String              @unique
   password_hash String
-  createdAt     DateTime @default(now())
-  balance       Float    @default(500)
+  createdAt     DateTime            @default(now())
+  balance       Float               @default(500)
+  Transaction   Transaction[]
 
   @@map(name: "users")
 }
 
+model TransactionType {
+	id            Int             @id @default(autoincrement())
+	type          String
+	Transaction   Transaction[]
+
+	@@map(name: "transaction_types")
+}
+
+model Transaction {
+	id                      Int                 @id @default(autoincrement())
+	transaction_uid         String
+	user_id                 Int
+	createdAt               DateTime            @default(now())
+	amount                  Float
+	transaction_type_id     Int
+	related_balance         Float
+	User                    User?               @relation(fields: [user_id], references: [id])
+	TransactionType         TransactionType?    @relation(fields: [transaction_type_id], references: [id])
+
+	@@map(name: "transactions")
+}

@@ -1,9 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { getSession } from 'next-auth/client';
 
+import { getAccount } from '../../utils/getAccount';
 import { AccountResponse } from '../../dto/account';
-import { PrismaClient } from '../../helper/PrismaClient';
-import { getAccount } from "../../utils/getAccount";
 
 const handler = async (
   req: NextApiRequest,
